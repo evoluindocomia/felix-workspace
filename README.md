@@ -2,7 +2,7 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.3.
 
-# 🚀 ngx-enterprise-arch
+# 🚀 ngx-felix-lib
 
 ![npm version](https://img.shields.io/badge/npm-v1.0.0-blue.svg)
 ![Angular](https://img.shields.io/badge/Angular-15.0%2B-red.svg)
@@ -30,7 +30,7 @@ Se você já se cansou de reescrever o mesmo boilerplate de `HttpClient` para ca
 A biblioteca necessita do `crypto-js` como dependência par para a segurança do tráfego de dados.
 
 ```bash
-npm install ngx-enterprise-arch
+npm install ngx-felix-lib
 npm install crypto-js
 npm install --save-dev @types/crypto-js
 
