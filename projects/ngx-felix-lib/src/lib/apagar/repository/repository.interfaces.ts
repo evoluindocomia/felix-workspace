@@ -1,4 +1,5 @@
 ﻿import { Observable } from 'rxjs';
+import { HttpParams } from '@angular/common/http';
 
 export interface IResource {
   id?: string | number;

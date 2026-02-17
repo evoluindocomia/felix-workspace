@@ -18,6 +18,13 @@ export class QueryBuilder {
         }
       });
     }
+
+    Object.keys(query).forEach(key => {
+        if (!['filter', 'sort', 'order', 'page', 'pageSize'].includes(key)) {
+             params = params.set(key, query[key]);
+        }
+    });
+
     return params;
   }
 }

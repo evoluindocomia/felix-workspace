@@ -1,7 +1,7 @@
-﻿// projects/ngx-enterprise-arch/src/lib/mfe/enterprise-context.service.ts
+﻿// projects/ngx-felix-lib/src/lib/mfe/enterprise-context.service.ts
 import { Injectable, signal } from '@angular/core';
-import { CryptoService } from './crypto.service';
-import { MfeContext } from './mfe.config';
+import { CryptoService } from '../mfe/crypto.service';
+import { MfeContext } from '../mfe/mfe.config';
 
 export interface EnterprisePayload {
   apiToken?: string;
@@ -25,9 +25,9 @@ export class EnterpriseContextService {
     try {
       const envelope = this.crypto.decrypt<MfeContext<EnterprisePayload>>(secureContext, encryptionKey);
       this.contextState.set(envelope.payload);
-      console.log('[ngx-enterprise-arch] Contexto de segurança carregado com sucesso.');
+      console.log('[ngx-felix-lib] Contexto de segurança carregado com sucesso.');
     } catch (error) {
-      console.error('[ngx-enterprise-arch] Falha crítica: Violação ou quebra na descriptografia do contexto.');
+      console.error('[ngx-felix-lib] Falha crítica: Violação ou quebra na descriptografia do contexto.');
       throw error;
     }
   }
