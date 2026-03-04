@@ -26,5 +26,16 @@ export interface MfeContext<T = any> {
 export interface EnterprisePayload {
   apiToken?: string;
   apiUrl?: string;
-  [key: string]: any;
+  originHost?: string;
+  sessionId?: string;
+  theme?: 'light' | 'dark' | 'system' | string;
+  data?: any; // Receptáculo reservado para JSONs e configurações avançadas do MFE
+  [key: string]: any; // Extensibilidade legada para customizações
+}
+
+// Configuração esperada na ferramenta de desenvolvimento
+export interface DevContextMockConfig<T = EnterprisePayload> {
+  payload: T;
+  encryptionKey: string;
+  originId?: string;
 }

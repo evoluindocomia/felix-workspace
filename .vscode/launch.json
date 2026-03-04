@@ -3,11 +3,26 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "ng serve",
+      "name": "Root App (Host)",
       "type": "chrome",
       "request": "launch",
       "preLaunchTask": "npm: start",
       "url": "http://localhost:4200/"
+    },
+    {
+      "name": "NFE App (MFE Isolado)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:4201/",
+      "webRoot": "${workspaceFolder}/projects/nfe-app",
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "webpack:/*": "${webRoot}/*",
+        "/./*": "${webRoot}/*",
+        "/src/*": "${webRoot}/src/*",
+        "/*": "*",
+        "/./~/*": "${webRoot}/node_modules/*"
+      }
     },
     {
       "name": "ng test",

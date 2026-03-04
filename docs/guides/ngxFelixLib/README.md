@@ -9,6 +9,7 @@ A `ngx-felix-lib` é uma biblioteca Angular responsável por prover o contexto a
 3. [Passo a Passo: Aplicação Root (Host)](#passo-a-passo-aplicação-root-host)
 4. [Passo a Passo: Aplicação MFE (Remote)](#passo-a-passo-aplicação-mfe-remote)
 5. [Padrão Repository](#padrão-repository)
+6. [Desenvolvimento Isolado e Mock de Contexto](#desenvolvimento-isolado-e-mock-de-contexto)
 
 ---
 
@@ -213,3 +214,90 @@ export class ProdutosComponent implements OnInit {
 A resolução de proxy nos repositórios segue a seguinte lógica:  
 `URL_FINAL = (Dynamic URL via Signal Context na Host) ?? (Fallback para a InjectionToken API_CONFIG local)`  
 Isso permite que se a Root App pedir para o MFE consumir do link **A** ele acate, mesmo que localmente a constante de `.env` seja **B**.
+
+---
+
+## Desenvolvimento Isolado e Mock de Contexto
+
+Desenvolver um MFE localmente (`ng serve`) sem a aplicação Host exige a simulação do provedor de contexto. A biblioteca fornece utilitários para construir essa arquitetura (Mock) com 100% de paridade criptográfica com a produção.
+
+O contrato de comunicação oficial (`EnterprisePayload`) possui uma propriedade flexível `data?: any` feita exclusivamente para recepcionar JSONs estruturados.
+
+### 1. Criando o Arquivo de Mock no MFE
+
+Crie um arquivo estático no seu MFE (ex: `dev-config.mock.ts`) detalhando os dados necessários para o teste:
+
+```typescript
+import { EnterprisePayload } from "ngx-felix-lib";
+
+// Estrutura esperada do payload dinâmico
+export interface NfeCustomData {
+  greetingParam: string;
+  isMocked: boolean;
+}
+
+export const MY_MFE_DEV_CONFIG: EnterprisePayload = {
+  apiToken: "DEV_TOKEN_MOCK_XYZ123",
+  originHost: "NFE_ISOLATED_DEV",
+  data: {
+    greetingParam: "Bem vindo ao MFE Isolado via JSON!",
+    isMocked: true,
+  } as NfeCustomData,
+};
+```
+
+### 2. Injetando a Simulação (Bootloader do MFE Standalone)
+
+No componente raiz (ex: `app.ts`), englobe os dados do mock no simulador criptográfico da biblioteca:
+
+```typescript
+import { Component, signal, inject, OnInit } from "@angular/core";
+import { CryptoService, generateDevSecureContext } from "ngx-felix-lib";
+import { MY_MFE_DEV_CONFIG } from "./dev-config.mock";
+
+@Component({
+  selector: "app-root",
+  template: `<app-hello-mfe [_secureContext]="mockContext()"></app-hello-mfe>`,
+})
+export class App implements OnInit {
+  public mockContext = signal<string>("");
+  private crypto = inject(CryptoService);
+
+  ngOnInit() {
+    const config = {
+      payload: MY_MFE_DEV_CONFIG,
+      encryptionKey: "MINHA_CHAVE_SUPER_SECRETA_H1B2",
+      originId: "NFE_DEV_BUILD",
+    };
+
+    // O MFE Pai constrói o envelope criptografado AES como se fosse a Host
+    const envelope = generateDevSecureContext(config, this.crypto);
+    this.mockContext.set(envelope);
+  }
+}
+```
+
+### 3. Extraindo os Dados Limpos no Componente
+
+O componente MFE destino (`hello-mfe.ts`) descriptografa e extrai automaticamente o tipo complexo via método utilitário `getPayloadData<T>()`:
+
+```typescript
+import { Component, inject } from "@angular/core";
+import { EnterpriseContextService } from "ngx-felix-lib";
+import { NfeCustomData } from "../dev-config.mock";
+
+export class HelloMfeComponent {
+  private contextService = inject(EnterpriseContextService);
+
+  ngOnInit() {
+    this.contextService.initialize(this._secureContext, "MINHA_CHAVE_SUPER_SECRETA_H1B2");
+
+    // O utilitário decodifica e desestrutura a chave `data` do JSON de forma tipada
+    const customData = this.contextService.getPayloadData<NfeCustomData>();
+
+    if (customData?.greetingParam) {
+      console.log(customData.greetingParam);
+    }
+  }
+}
+```

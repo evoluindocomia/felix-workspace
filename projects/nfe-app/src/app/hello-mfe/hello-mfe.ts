@@ -47,9 +47,9 @@ export class HelloMfeComponent {
       this.errorMessage = '';
 
       // Se a lib desempatocu e disponibilizou no contextState o payload genérico:
-      const state = this.contextService.context;
-      if (state && (state as any).greetingParam) {
-        this.greetingParam = (state as any).greetingParam;
+      const customData = this.contextService.getPayloadData<{ greetingParam: string }>();
+      if (customData && customData.greetingParam) {
+        this.greetingParam = customData.greetingParam;
       }
 
       // Agora que o contexto/token está na memória (signal) gerenciado pela ngx-felix-lib,

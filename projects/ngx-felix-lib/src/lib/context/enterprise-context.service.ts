@@ -13,7 +13,10 @@ export class EnterpriseContextService {
     if (!secureContext) return;
 
     try {
-      const envelope = this.crypto.decrypt<MfeContext<EnterprisePayload>>(secureContext, encryptionKey);
+      const envelope = this.crypto.decrypt<MfeContext<EnterprisePayload>>(
+        secureContext,
+        encryptionKey,
+      );
       this.contextState.set(envelope.payload); // Salva o token e a URL no signal
     } catch (error) {
       console.error('[ngx-felix-lib] Falha na descriptografia do contexto.');
@@ -22,7 +25,19 @@ export class EnterpriseContextService {
   }
 
   // Getters reativos para o resto da aplicação consumir
-  public get context() { return this.contextState(); }
-  public get token() { return this.contextState()?.apiToken; }
-  public get dynamicApiUrl() { return this.contextState()?.apiUrl; }
+  public get context() {
+    return this.contextState();
+  }
+  public get token() {
+    return this.contextState()?.apiToken;
+  }
+  public get dynamicApiUrl() {
+    return this.contextState()?.apiUrl;
+  }
+
+  // Acesso direto e tipável ao objeto JSON flexível trafegado
+  public getPayloadData<T = any>(): T | undefined {
+    const currentState = this.contextState();
+    return currentState?.data ? (currentState.data as T) : undefined;
+  }
 }
