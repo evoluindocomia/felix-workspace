@@ -1,0 +1,14 @@
+<main class="main">
+  <div class="content">
+    <h1>Host Application (Root App)</h1>
+    <p>Abaixo o MFE sendo renderizado via MfeOutletDirective:</p>
+
+    <div style="border: 2px dashed #007bff; padding: 20px; margin-top: 20px;">
+      <!-- Passando o greetingParam p/ dentro do contextData dinâmico para evitar erro de schematics de prop não mapeada -->
+      <ng-container [mfeOutlet]="mfeConfig" [contextData]="enterpriseData" [securityConfig]="security">
+      </ng-container>
+    </div>
+  </div>
+</main>
+
+<router-outlet />

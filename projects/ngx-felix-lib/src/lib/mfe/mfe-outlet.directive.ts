@@ -1,13 +1,18 @@
 ﻿import {
-  Directive, Input, ViewContainerRef, ComponentRef,
-  OnChanges, SimpleChanges, Type
+  Directive,
+  Input,
+  ViewContainerRef,
+  ComponentRef,
+  OnChanges,
+  SimpleChanges,
+  Type,
 } from '@angular/core';
 import { MfeConfig, SecurityConfig, MfeContext } from './mfe.interfaces';
 import { CryptoService } from '../context/crypto.service';
 
 @Directive({
   selector: '[mfeOutlet]',
-  standalone: true
+  standalone: true,
 })
 export class MfeOutletDirective implements OnChanges {
   @Input('mfeOutlet') config!: MfeConfig;
@@ -18,11 +23,11 @@ export class MfeOutletDirective implements OnChanges {
 
   constructor(
     private vcr: ViewContainerRef,
-    private crypto: CryptoService
+    private crypto: CryptoService,
   ) {}
 
   async ngOnChanges(changes: SimpleChanges) {
-    if (changes['config'] && this.config) {
+    if (changes['mfeOutlet'] && this.config) {
       await this.loadMfe();
     }
     if (changes['contextData'] && this.componentRef) {
@@ -34,7 +39,7 @@ export class MfeOutletDirective implements OnChanges {
     try {
       const module = await this.config.loader({
         remoteName: this.config.remoteName,
-        exposedModule: this.config.exposedModule
+        exposedModule: this.config.exposedModule,
       });
 
       const ComponentType: Type<any> = this.config.componentName
@@ -56,10 +61,13 @@ export class MfeOutletDirective implements OnChanges {
     const envelope: MfeContext = {
       origin: this.securityConfig.originId,
       timestamp: Date.now(),
-      payload: this.contextData
+      payload: this.contextData,
     };
 
-    const encryptedPayload = this.crypto.encrypt(envelope, this.securityConfig.encryptionKey);
+    const encryptedPayload = this.crypto.encrypt(
+      envelope,
+      this.securityConfig.encryptionKey,
+    );
 
     // Passa a string encriptada para o componente remoto
     this.componentRef.setInput('_secureContext', encryptedPayload);

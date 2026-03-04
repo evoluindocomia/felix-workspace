@@ -1,0 +1,21 @@
+<div class="mfe-container"
+    style="padding: 15px; border: 1px solid #4caf50; border-radius: 8px; background-color: #f1f8e9;">
+    <h2>Aplicação MFE (nfe-app)</h2>
+
+    <div *ngIf="errorMessage" style="color: red; font-weight: bold;">
+        {{ errorMessage }}
+    </div>
+
+    <div *ngIf="!errorMessage && !userInfo" style="color: #666;">
+        <p>Carregando contexto protegido...</p>
+    </div>
+
+    <div *ngIf="userInfo">
+        <p><strong>Parâmetro Recebido da Host:</strong> {{ greetingParam }}</p>
+        <p><strong>Usuário Identificado via API (com Token Contexto):</strong> {{ userInfo.name }}</p>
+
+        <!-- Regra de Negócio: Exibir a string combinada (Parâmetro + Nome Mock) -->
+        <h3 style="color: #2e7d32; margin-top: 15px;">Resultado Final:</h3>
+        <h1 style="color: #1b5e20;">{{ greetingParam }}, {{ userInfo.name }}</h1>
+    </div>
+</div>
