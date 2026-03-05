@@ -11,7 +11,7 @@ import { MY_MFE_DEV_CONFIG } from './dev-config.mock';
   styleUrl: './app.scss',
 })
 export class App implements OnInit {
-  protected readonly title = signal('nfe-app');
+  protected readonly title = signal('mfe-app');
   public mockContext = signal<string>('');
 
   // No build standalone (Isolated Dev), App é a raiz e simula o host.

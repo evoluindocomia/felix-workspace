@@ -2,7 +2,7 @@
 
 ## 1. Objetivo
 
-Criar duas aplicações Angular independentes (`root-app` e `nfe-app`) para validar e testar a integração, estrutura de comunicação e segurança providas pela biblioteca `ngx-felix-lib` publicada no NPM.
+Criar duas aplicações Angular independentes (`root-app` e `mfe-app`) para validar e testar a integração, estrutura de comunicação e segurança providas pela biblioteca `ngx-felix-lib` publicada no NPM.
 
 ## 2. Escopo do Projeto
 
@@ -19,7 +19,7 @@ Criar duas aplicações Angular independentes (`root-app` e `nfe-app`) para vali
 
 ### 2.2. Aplicação MFE (Remote)
 
-- **Localização:** `felix-workspace/projects/nfe-app`
+- **Localização:** `felix-workspace/projects/mfe-app`
 - **Independência:** Deve ser um workspace Angular isolado, também sem vínculos com o repositório pai.
 - **Responsabilidades:**
   - Instalar `ngx-felix-lib` via NPM.
@@ -34,7 +34,7 @@ Criar duas aplicações Angular independentes (`root-app` e `nfe-app`) para vali
 - **Angular:** Versão V17+ (preferencialmente V21 alinhado ao workspace atual).
 - **Module Federation:** Utilizar `@angular-architects/module-federation` para gestão do carregamento de aplicações remotas e configurações.
 - **Crypto-js:** Instalar a lib e seus types para viabilizar as chamadas da `ngx-felix-lib`.
-- **Independência:** A remoção das subpastas `root-app` e `nfe-app` não deve acarretar erros na base `felix-workspace`.
+- **Independência:** A remoção das subpastas `root-app` e `mfe-app` não deve acarretar erros na base `felix-workspace`.
 
 ## 4. Estrutura de Comunicação
 
@@ -42,7 +42,7 @@ Criar duas aplicações Angular independentes (`root-app` e `nfe-app`) para vali
 sequenceDiagram
     participant Host as root-app (Host)
     participant Lib as ngx-felix-lib
-    participant Remote as nfe-app (Remote/MFE)
+    participant Remote as mfe-app (Remote/MFE)
     participant Mock as Mock Supabase
 
     Host->>Host: Simula Login e gera Token

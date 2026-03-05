@@ -1,7 +1,7 @@
 const { withNativeFederation, shareAll } = require('@angular-architects/native-federation/config');
 
 module.exports = withNativeFederation({
-  name: 'nfe-app',
+  name: 'mfe-app',
 
   exposes: {
     './Component': './src/app/hello-mfe/hello-mfe.ts',

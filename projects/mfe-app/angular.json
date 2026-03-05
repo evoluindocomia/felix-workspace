@@ -7,7 +7,7 @@
 	},
 	"newProjectRoot": "projects",
 	"projects": {
-		"nfe-app": {
+		"mfe-app": {
 			"projectType": "application",
 			"schematics": {
 				"@schematics/angular:component": {
@@ -23,10 +23,10 @@
 					"options": {},
 					"configurations": {
 						"production": {
-							"target": "nfe-app:esbuild:production"
+							"target": "mfe-app:esbuild:production"
 						},
 						"development": {
-							"target": "nfe-app:esbuild:development",
+							"target": "mfe-app:esbuild:development",
 							"dev": true
 						}
 					},
@@ -35,7 +35,7 @@
 				"serve": {
 					"builder": "@angular-architects/native-federation:build",
 					"options": {
-						"target": "nfe-app:serve-original:development",
+						"target": "mfe-app:serve-original:development",
 						"rebuildDelay": 500,
 						"dev": true,
 						"cacheExternalArtifacts": false,
@@ -92,10 +92,10 @@
 					"builder": "@angular/build:dev-server",
 					"configurations": {
 						"production": {
-							"buildTarget": "nfe-app:esbuild:production"
+							"buildTarget": "mfe-app:esbuild:production"
 						},
 						"development": {
-							"buildTarget": "nfe-app:esbuild:development"
+							"buildTarget": "mfe-app:esbuild:development"
 						}
 					},
 					"defaultConfiguration": "development",

@@ -8,7 +8,7 @@
       "request": "launch",
       "preLaunchTask": "npm: start",
       "url": "http://localhost:4201/",
-      "webRoot": "${workspaceFolder}/projects/nfe-app",
+      "webRoot": "${workspaceFolder}/projects/mfe-app",
       "sourceMaps": true,
       "sourceMapPathOverrides": {
         "webpack:/*": "${webRoot}/*",
