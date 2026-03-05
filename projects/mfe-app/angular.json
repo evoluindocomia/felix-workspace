@@ -25,6 +25,9 @@
 						"production": {
 							"target": "mfe-app:esbuild:production"
 						},
+						"hom": {
+							"target": "mfe-app:esbuild:hom"
+						},
 						"development": {
 							"target": "mfe-app:esbuild:development",
 							"dev": true
@@ -40,7 +43,22 @@
 						"dev": true,
 						"cacheExternalArtifacts": false,
 						"port": 0
-					}
+					},
+					"configurations": {
+						"production": {
+							"target": "mfe-app:serve-original:production",
+							"dev": false
+						},
+						"hom": {
+							"target": "mfe-app:serve-original:hom",
+							"dev": true
+						},
+						"development": {
+							"target": "mfe-app:serve-original:development",
+							"dev": true
+						}
+					},
+					"defaultConfiguration": "development"
 				},
 				"test": {
 					"builder": "@angular/build:unit-test"
@@ -78,12 +96,48 @@
 									"maximumError": "8kB"
 								}
 							],
-							"outputHashing": "all"
+							"outputHashing": "all",
+							"fileReplacements": [
+								{
+									"replace": "src/environments/environment.ts",
+									"with": "src/environments/environment.ts"
+								}
+							]
+						},
+						"hom": {
+							"optimization": false,
+							"extractLicenses": false,
+							"sourceMap": true,
+							"outputHashing": "all",
+							"budgets": [
+								{
+									"type": "initial",
+									"maximumWarning": "500kB",
+									"maximumError": "1MB"
+								},
+								{
+									"type": "anyComponentStyle",
+									"maximumWarning": "4kB",
+									"maximumError": "8kB"
+								}
+							],
+							"fileReplacements": [
+								{
+									"replace": "src/environments/environment.ts",
+									"with": "src/environments/environment.hom.ts"
+								}
+							]
 						},
 						"development": {
 							"optimization": false,
 							"extractLicenses": false,
-							"sourceMap": true
+							"sourceMap": true,
+							"fileReplacements": [
+								{
+									"replace": "src/environments/environment.ts",
+									"with": "src/environments/environment.development.ts"
+								}
+							]
 						}
 					},
 					"defaultConfiguration": "production"
@@ -93,6 +147,9 @@
 					"configurations": {
 						"production": {
 							"buildTarget": "mfe-app:esbuild:production"
+						},
+						"hom": {
+							"buildTarget": "mfe-app:esbuild:hom"
 						},
 						"development": {
 							"buildTarget": "mfe-app:esbuild:development"

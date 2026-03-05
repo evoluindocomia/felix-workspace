@@ -1,6 +1,5 @@
 export const environment = {
   production: false,
-  staging: false,
+  hom: false,
   apiBaseUrl: 'http://localhost:3000/v1',
-  mfeBaseUrl: 'http://localhost:4201',
 };

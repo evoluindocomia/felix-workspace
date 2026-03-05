@@ -1,6 +1,5 @@
 export const environment = {
   production: true,
-  staging: false,
+  hom: false,
   apiBaseUrl: 'https://api.empresa.com.br/v1',
-  mfeBaseUrl: 'https://mfe.empresa.com.br',
 };
