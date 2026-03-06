@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { MfeOutletDirective, MfeConfig, SecurityConfig, EnterprisePayload } from 'ngx-felix-lib';
 import { AuthMockService } from './auth-mock';
 import { loadRemoteModule } from '@angular-architects/native-federation';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -53,8 +54,8 @@ export class App implements AfterViewInit {
   };
 
   security: SecurityConfig = {
-    encryptionKey: 'MINHA_CHAVE_SUPER_SECRETA_H1B2',
-    originId: 'ROOT_APP_HOST',
+    encryptionKey: environment.encryptionKey,
+    originId: environment.mfeOriginId,
   };
 
   greetingParam = 'ola mundo';

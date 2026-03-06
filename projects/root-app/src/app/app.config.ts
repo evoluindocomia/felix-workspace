@@ -1,11 +1,13 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, InjectionToken } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideEnterpriseArchitecture } from 'ngx-felix-lib';
 import { environment } from '../environments/environment';
 
 import { routes } from './app.routes';
 import { CryptoService } from 'ngx-felix-lib';
-import * as CryptoJS from 'crypto-js';
+
+// Criação isolada do InjectionToken para corresponder ao mesmo nome/tipo esperado pelo MFE
+export const MFE_ENCRYPTION_KEY = new InjectionToken<string>('MFE_ENCRYPTION_KEY');
 
 // Workaround Limpo para o Bug CJS x ESModules da ngx-felix-lib com o crypto-js
 class SafeCryptoServiceProxy implements CryptoService {
@@ -25,5 +27,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideEnterpriseArchitecture({ environment }),
     { provide: CryptoService, useClass: SafeCryptoServiceProxy },
+    { provide: MFE_ENCRYPTION_KEY, useValue: environment.encryptionKey },
   ],
 };

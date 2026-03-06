@@ -1,4 +1,6 @@
-
-<app-hello-mfe [_secureContext]="mockContext()"></app-hello-mfe>
+<app-hello-mfe
+  [_secureContext]="mockContext()"
+  [greetingParam]="'Olá do Host!'"
+></app-hello-mfe>
 
 <router-outlet />

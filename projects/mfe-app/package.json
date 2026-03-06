@@ -39,7 +39,7 @@
     "@softarc/native-federation-node": "^3.3.4",
     "crypto-js": "^4.2.0",
     "es-module-shims": "^1.5.12",
-    "ngx-felix-lib": "^1.0.3",
+    "ngx-felix-lib": "^1.0.5",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

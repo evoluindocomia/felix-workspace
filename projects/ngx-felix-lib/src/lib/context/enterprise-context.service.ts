@@ -9,7 +9,7 @@ export class EnterpriseContextService {
 
   constructor(private crypto: CryptoService) {}
 
-  public initialize(secureContext: string, encryptionKey: string): void {
+  public initialize(secureContext: string, encryptionKey: string, expectedOriginId?: string): void {
     if (!secureContext) return;
 
     try {
@@ -17,9 +17,23 @@ export class EnterpriseContextService {
         secureContext,
         encryptionKey,
       );
+
+      // Proteção 1: Anti-Replay (Expiração Temporal Estrita - 5 minutos)
+      const MAX_TOLERANCE_MS = 5 * 60 * 1000;
+      const timeDiff = Date.now() - envelope.timestamp;
+
+      if (timeDiff > MAX_TOLERANCE_MS || timeDiff < -MAX_TOLERANCE_MS) { // Protege contra relógios dessincronizados do Host pro futuro também
+        throw new Error('[MFE Security] O token de segurança expirou (Replay Attack mitigado).');
+      }
+
+      // Proteção 2: Origin Spoofing (Só valida se o Consumidor enviar o Origin Esperado)
+      if (expectedOriginId && envelope.origin !== expectedOriginId) {
+        throw new Error(`[MFE Security] Origem desconhecida da Host interceptada. Esperado: ${expectedOriginId}, Recebido: ${envelope.origin}`);
+      }
+
       this.contextState.set(envelope.payload); // Salva o token e a URL no signal
-    } catch (error) {
-      console.error('[ngx-felix-lib] Falha na descriptografia do contexto.');
+    } catch (error: any) {
+      console.error('[ngx-felix-lib] Falha na descriptografia ou validação do contexto:', error.message);
       throw error;
     }
   }
