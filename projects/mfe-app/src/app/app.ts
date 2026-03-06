@@ -1,9 +1,8 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HelloMfeComponent } from './hello-mfe/hello-mfe';
-import { CryptoService, generateDevSecureContext } from 'ngx-felix-lib';
+import { CryptoService, generateDevSecureContext, MFE_ENCRYPTION_KEY, MFE_ORIGIN_ID } from 'ngx-felix-lib';
 import { MY_MFE_DEV_CONFIG } from './dev-config.mock';
-import { MFE_ENCRYPTION_KEY, MFE_ORIGIN_ID } from './app.config';
 
 @Component({
   selector: 'app-root',

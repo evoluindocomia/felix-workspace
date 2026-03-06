@@ -29,6 +29,7 @@ export interface EnterprisePayload {
   originHost?: string;
   sessionId?: string;
   theme?: 'light' | 'dark' | 'system' | string;
+  status?: 'success' | 'error' | 'info'; // Usado primariamente para classificar o retorno para a Root
   data?: any; // Receptáculo reservado para JSONs e configurações avançadas do MFE
   [key: string]: any; // Extensibilidade legada para customizações
 }

@@ -9,7 +9,8 @@ A `ngx-felix-lib` é uma biblioteca Angular responsável por prover o contexto a
 3. [Passo a Passo: Aplicação Root (Host)](#passo-a-passo-aplicação-root-host)
 4. [Passo a Passo: Aplicação MFE (Remote)](#passo-a-passo-aplicação-mfe-remote)
 5. [Padrão Repository](#padrão-repository)
-6. [Desenvolvimento Isolado e Mock de Contexto](#desenvolvimento-isolado-e-mock-de-contexto)
+12. [Desenvolvimento Isolado e Mock de Contexto](#desenvolvimento-isolado-e-mock-de-contexto)
+13. [Comunicação de Retorno (MFE para Host)](#comunicação-de-retorno-mfe-para-host)
 
 ---
 
@@ -369,3 +370,91 @@ No Componente da Host que hospeda a chamada:
 ```
 
 Desta forma, a extração de `codigoPedido` que você programou na **etapa 3** do seu componente funcionará de maneira transparente, imutável e sem acoplamentos fortes de Injeção em tempo de build, executando perfeitamente a leitura dentro do desenvolvimento Standalone e sendo consumido remotamente no Host em Produção.
+
+---
+
+## Comunicação de Retorno (MFE para Host)
+
+Além de receber o contexto seguro inicial da aplicação Host, os Micro-Frontends (MFEs) podem enviar respostas, sucessos, erros operacionais ou payloads arbitrários de volta ao Root de forma igualmente segura, blindada e criptografada (utilizando a mesma chave simétrica enviada originalmente).  
+
+A diretiva `mfeOutlet` provida pelo host possui um `@Output() mfeReturn` pronto para escutar o próprio evento de nome equivalente no componente encapsulado (se ele existir).
+
+### 1. Preparando o retorno pelo MFE
+
+Dentro do seu componente remoto (ex: `HelloMfeComponent`), você precisará de duas etapas simples: declarar um `@Output() mfeReturn` e usar o despachante no serviço `buildReturnContext()` que foi gerado nativamente pelo pacote consumido.
+
+```typescript
+import { Component, Output, EventEmitter, inject } from '@angular/core';
+import { EnterpriseContextService } from 'ngx-felix-lib';
+
+@Component({
+  // ...
+})
+export class RecebedorComponent {
+  private contextService = inject(EnterpriseContextService);
+  
+  // A diretiva 'mfeOutlet' fará o proxy (bind) automático deste event emitter
+  @Output() mfeReturn = new EventEmitter<string>();
+
+  concluirAtividadeOuFormulario() {
+    // Exemplo de retorno de sucesso onde "data" passará o state local 
+    // e "status" indicará o fim do processo ('success', 'error' ou 'info')
+    const payloadSeguro = this.contextService.buildReturnContext(
+      { nome: 'João da Silva', transacaoId: 90812 }, 
+      'success'
+    );
+    
+    // Dispara a string encriptada para o host interceptar livre de espionagem
+    this.mfeReturn.emit(payloadSeguro);
+  }
+}
+```
+
+### 2. Escutando o Retorno na Aplicação Host (Root)
+
+Na Host App onde a diretiva é consumida globalmente, você fará o _binding_ nativo do evento `(mfeReturn)` exposto. Lembre-se: O pacote que será recebido estará encriptado respeitando o design pattern de `MfeContext<EnterprisePayload>`, logo, você instanciará o `CryptoService` principal da root para quebrar/ler a informação.
+
+No HTML onde o Outlet é rendenrizado:
+
+```html
+<ng-container 
+  [mfeOutlet]="mfeConfig" 
+  [contextData]="enterpriseData" 
+  [securityConfig]="security"
+  (mfeReturn)="onMfeMessage($event)"
+></ng-container>
+```
+
+No Componente TypeScript do Host:
+
+```typescript
+import { Component, inject } from '@angular/core';
+import { CryptoService, MfeContext, EnterprisePayload } from 'ngx-felix-lib';
+
+@Component({ ... })
+export class RootComponent {
+  private crypto = inject(CryptoService);
+  private encryptionKey = 'MINHA_CHAVE_SUPER_SECRETA_H1B2'; // A mesma da entrada
+
+  onMfeMessage(secureReturn: string) {
+    try {
+      // Abre o envelope seguro utilizando a chave raiz da host session
+      const envelope = this.crypto.decrypt<MfeContext<EnterprisePayload>>(
+        secureReturn, 
+        this.encryptionKey
+      );
+      
+      const responseStatus = envelope.payload.status; // 'success' | 'error' | 'info'
+      const responseData = envelope.payload.data;     // Ex: { nome: 'João', transacaoId: 90812 }
+
+      console.log('Mensagem do MFE recebida. Status:', responseStatus);
+      console.log('Dados interceptados do MFE:', responseData);
+
+      // Aplica regras de negócio (Fechar Modal do MFE, Avançar Step, Processar Pagamento, etc.)
+
+    } catch (e) {
+      console.error('[Host MFE Wrapper] Falha ao validar ou abrir roteamento reverso!', e);
+    }
+  }
+}
+```

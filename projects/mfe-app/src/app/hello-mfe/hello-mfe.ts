@@ -1,7 +1,6 @@
-import { Component, Input, inject, signal } from '@angular/core';
-import { EnterpriseContextService } from 'ngx-felix-lib';
+import { Component, Input, inject, signal, Output, EventEmitter } from '@angular/core';
+import { EnterpriseContextService, MFE_ENCRYPTION_KEY, MFE_ORIGIN_ID } from 'ngx-felix-lib';
 import { SupabaseMockService } from '../supabase-mock';
-import { MFE_ENCRYPTION_KEY, MFE_ORIGIN_ID } from '../app.config';
 
 @Component({
   selector: 'app-hello-mfe',
@@ -30,6 +29,7 @@ export class HelloMfeComponent {
   }
 
   @Input() greetingParam!: string;
+  @Output() mfeReturn = new EventEmitter<string>();
 
   readonly userInfo = signal<any>(null);
   readonly errorMessage = signal<string>(
@@ -52,9 +52,18 @@ export class HelloMfeComponent {
       this.supabaseMock.getUserData().subscribe({
         next: (data) => {
           this.userInfo.set({ ...data, name: 'Mock da Silva' });
+
+          // Enviando o resultado de volta para o Root informando sucesso e os dados
+          // Aqui passamos the userInfo() como data e 'success' como status
+          const secureReturn = this.contextService.buildReturnContext(this.userInfo(), 'success');
+          this.mfeReturn.emit(secureReturn);
         },
         error: (err) => {
           this.errorMessage.set('Erro ao buscar dados do mock: ' + err.message);
+
+          // Opcional: Avisar o Root sobre a falha interna
+          const errorReturn = this.contextService.buildReturnContext({ error: err.message }, 'error');
+          this.mfeReturn.emit(errorReturn);
         },
       });
     } catch (e: any) {

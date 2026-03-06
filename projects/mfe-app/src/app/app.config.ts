@@ -4,12 +4,9 @@ import {
   provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { enterpriseHttpInterceptor, CryptoService } from 'ngx-felix-lib';
+import { enterpriseHttpInterceptor, CryptoService, MFE_ENCRYPTION_KEY, MFE_ORIGIN_ID } from 'ngx-felix-lib';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
-
-export const MFE_ENCRYPTION_KEY = new InjectionToken<string>('MFE_ENCRYPTION_KEY');
-export const MFE_ORIGIN_ID = new InjectionToken<string>('MFE_ORIGIN_ID');
 
 class SafeCryptoServiceProxy implements CryptoService {
   encrypt(data: any, key: string): string {

@@ -1,18 +1,20 @@
 import { Component, inject, ViewChild, AfterViewInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { MfeOutletDirective, MfeConfig, SecurityConfig, EnterprisePayload } from 'ngx-felix-lib';
+import { MfeOutletDirective, MfeConfig, SecurityConfig, EnterprisePayload, CryptoService, MfeContext } from 'ngx-felix-lib';
 import { AuthMockService } from './auth-mock';
+import { CommonModule } from '@angular/common';
 import { loadRemoteModule } from '@angular-architects/native-federation';
 import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, MfeOutletDirective],
+  imports: [CommonModule, RouterOutlet, MfeOutletDirective],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App implements AfterViewInit {
+  private crypto = inject(CryptoService);
   private auth = inject(AuthMockService);
 
   @ViewChild(MfeOutletDirective) mfeOutlet!: MfeOutletDirective;
@@ -59,4 +61,30 @@ export class App implements AfterViewInit {
   };
 
   greetingParam = 'ola mundo';
+
+  mfeResponseData: any = null;
+  mfeResponseStatus: 'success' | 'error' | 'info' | null = null;
+  mfeOriginId: string | null = null;
+
+  handleMfeReturn(secureReturn: string) {
+    try {
+      // Abre o envelope seguro utilizando a chave raiz da host session
+      const envelope = this.crypto.decrypt<MfeContext<EnterprisePayload>>(
+        secureReturn,
+        this.security.encryptionKey
+      );
+
+      this.mfeResponseStatus = envelope.payload.status || 'info';
+      this.mfeResponseData = envelope.payload.data;
+      this.mfeOriginId = envelope.origin;
+
+      console.log(`[Host App] Mensagem recebida do MFE (${this.mfeOriginId}). Status:`, this.mfeResponseStatus);
+      console.log('[Host App] Dados:', this.mfeResponseData);
+
+    } catch (e) {
+      console.error('[Host App] Falha ao descriptografar o roteamento reverso do MFE!', e);
+      this.mfeResponseStatus = 'error';
+      this.mfeResponseData = { error: 'Descriptografia Falhou', details: e };
+    }
+  }
 }

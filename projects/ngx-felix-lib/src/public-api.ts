@@ -6,6 +6,7 @@
 export * from './lib/mfe/mfe.interfaces';
 export * from './lib/mfe/mfe-outlet.directive';
 export * from './lib/mfe/dev-context-mock';
+export * from './lib/mfe/mfe.tokens';
 
 // Exportações de Controle de Contexto e Interceptação
 export * from './lib/context/crypto.service';
