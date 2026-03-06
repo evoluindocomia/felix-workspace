@@ -44,69 +44,78 @@ A comunicação entre uma aplicação **Host** e um **MFE (Remote)** é resolvid
 
 ## Passo a Passo: Aplicação Root (Host)
 
-### 1. Injetando a Arquitetura Principal
+### 1. Injetando a Arquitetura Principal (Tokens de Segurança)
 
-Na aplicação Host, ao executar o seu `main.ts` ou sua configuração de providers `app.config.ts`, insira a arquitetura na injeção de Providers contendo as informações de `environment`.
+Na aplicação Host, ao executar sua configuração de providers `app.config.ts`, você deve prover não apenas os dados de configuração HTTP, mas também as Chaves de Segurança e o ID de Origem utilizando o sistema nativo de `InjectionTokens` da nossa biblioteca.
 
 ```typescript
 import { ApplicationConfig } from "@angular/core";
-import { provideEnterpriseArchitecture } from "ngx-felix-lib";
+import { provideEnterpriseArchitecture, MFE_ENCRYPTION_KEY, MFE_ORIGIN_ID } from "ngx-felix-lib";
 import { environment } from "../environments/environment";
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    // Injeção da arquitetura base informando o 'url_base_api' a partir do environment
+    // Injeção da arquitetura base informando o 'apiBaseUrl'
     provideEnterpriseArchitecture({ environment }),
+    
+    // Provisão Global de Tokens de Segurança para a Federação
+    { provide: MFE_ENCRYPTION_KEY, useValue: environment.encryptionKey },
+    { provide: MFE_ORIGIN_ID, useValue: environment.mfeOriginId },
   ],
 };
 ```
 
 ### 2. Carregando Micro-Frontends com `mfeOutlet`
 
-A aplicação Root utiliza a diretiva `[mfeOutlet]` para injetar os MFEs remotamente. Para isso, no template:
+A aplicação Root utiliza a diretiva `[mfeOutlet]` para injetar os MFEs remotamente, agindo como um Maestro que passa os dados da Sessão (Token, Usuário) e as configs de segurança.
+
+No template (`app.html`):
 
 ```html
-<ng-container [mfeOutlet]="mfeConfig" [contextData]="enterpriseData" [securityConfig]="security"> </ng-container>
+<ng-container 
+  [mfeOutlet]="mfeConfig" 
+  [contextData]="enterpriseData" 
+  [securityConfig]="security"> 
+</ng-container>
 ```
 
-No Componente TypeScript correspondente (`app.component.ts` por exemplo):
+No Componente TypeScript correspondente (`app.ts`):
 
 ```typescript
 import { Component } from "@angular/core";
 import { MfeOutletDirective, MfeConfig, SecurityConfig, EnterprisePayload } from "ngx-felix-lib";
-// Exemplo se estiver usando o utilitário nativo de federation
-import { loadRemoteModule } from "@angular-architects/module-federation";
+import { loadRemoteModule } from "@angular-architects/native-federation";
+import { environment } from '../environments/environment';
 
 @Component({
   selector: "app-root",
   standalone: true,
   imports: [MfeOutletDirective],
-  templateUrl: "./app.component.html",
+  templateUrl: "./app.html",
 })
 export class AppComponent {
-  // 1. Configuração do componente ou modulo que deve ser carregado e injetado do manifest do Host
+  // 1. Configuração do componente ou modulo que deve ser carregado via Native Federation
   mfeConfig: MfeConfig = {
     remoteName: "mfe-app",
     exposedModule: "./DashboardComponent",
     componentName: "DashboardComponent",
     loader: (options) =>
       loadRemoteModule({
-        type: "module",
-        remoteEntry: "http://localhost:4201/remoteEntry.js",
+        remoteEntry: "http://localhost:4201/remoteEntry.json",
         exposedModule: options.exposedModule,
-      }),
+      } as any),
   };
 
-  // 2. Dados Enterprise que a Host disponibiliza (token de usuário, custom URL)
+  // 2. Dados Enterprise que a Host disponibiliza (token de usuário logado, URLs)
   enterpriseData: EnterprisePayload = {
     apiToken: "JWT_OU_TOKEN_DE_SESSAO",
     apiUrl: "https://api.empresa.com.br/v1",
   };
 
-  // 3. A chave de Encriptação (deve bater com a chave instanciada no MFE) e o escopo da origem de Host
+  // 3. O Root injeta das suas environments de Host a chave simétrica e o OriginId
   security: SecurityConfig = {
-    encryptionKey: "MINHA_CHAVE_SUPER_SECRETA_H1B2",
-    originId: "ROOT_APP_HOST",
+    encryptionKey: environment.encryptionKey,
+    originId: environment.mfeOriginId,
   };
 }
 ```
@@ -410,51 +419,74 @@ export class RecebedorComponent {
 }
 ```
 
-### 2. Escutando o Retorno na Aplicação Host (Root)
+### 2. Escutando o Retorno na Aplicação Host (Root) e Orquestrando Escalas
 
-Na Host App onde a diretiva é consumida globalmente, você fará o _binding_ nativo do evento `(mfeReturn)` exposto. Lembre-se: O pacote que será recebido estará encriptado respeitando o design pattern de `MfeContext<EnterprisePayload>`, logo, você instanciará o `CryptoService` principal da root para quebrar/ler a informação.
+Na Host App, você fará o _binding_ nativo do evento `(mfeReturn)`. O Root atua como um maestro: Ele lê os dados de entrada usando o `CryptoService` e identifica exatamente **qual** MFE enviou os dados graças à propriedade secreta `envelope.origin`. Isso previne que dezenas de MFEs criem vazamentos de estado na tela da Root.
 
-No HTML onde o Outlet é rendenrizado:
+No HTML onde o Outlet é renderizado usamos o type casting `$any($event)` por prevenção:
 
 ```html
 <ng-container 
   [mfeOutlet]="mfeConfig" 
   [contextData]="enterpriseData" 
   [securityConfig]="security"
-  (mfeReturn)="onMfeMessage($event)"
+  (mfeReturn)="onMfeMessage($any($event))"
 ></ng-container>
+
+<!-- Renderização Visual usando Signals reativos no Angular -->
+<div *ngIf="mfeResponseData()">
+  <p>Retorno interceptado do MFE: {{ mfeOriginId() }}</p>
+  <pre>{{ mfeResponseData() | json }}</pre>
+</div>
 ```
 
-No Componente TypeScript do Host:
+No Componente TypeScript do Host, é recomendado o uso de **Signals** (Angular 17+) para garantir altíssima performance. Como a `ngx-felix-lib` usa a criptografia super leve do `crypto-js`, extrair dados AES de N-MFEs no Frontend rodará abaixo de `1ms` e não causará lentidão global/Change Detection em excesso.
 
 ```typescript
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CryptoService, MfeContext, EnterprisePayload } from 'ngx-felix-lib';
+import { environment } from '../environments/environment';
 
 @Component({ ... })
 export class RootComponent {
   private crypto = inject(CryptoService);
-  private encryptionKey = 'MINHA_CHAVE_SUPER_SECRETA_H1B2'; // A mesma da entrada
+  
+  // Guardiões de estado isolados para UI Reativa
+  mfeResponseData = signal<any>(null);
+  mfeResponseStatus = signal<'success' | 'error' | 'info' | null>(null);
+  mfeOriginId = signal<string | null>(null);
 
   onMfeMessage(secureReturn: string) {
     try {
-      // Abre o envelope seguro utilizando a chave raiz da host session
+      // 1. O Root descriptografa o evento utilizando sua chave mestra
       const envelope = this.crypto.decrypt<MfeContext<EnterprisePayload>>(
         secureReturn, 
-        this.encryptionKey
+        environment.encryptionKey
       );
       
-      const responseStatus = envelope.payload.status; // 'success' | 'error' | 'info'
-      const responseData = envelope.payload.data;     // Ex: { nome: 'João', transacaoId: 90812 }
+      // 2. Extrai e cataloga a Origem (Ex: 'nfe-app', 'admin-app')
+      const originId = envelope.origin;
+      const responseStatus = envelope.payload.status; // 'success' | 'error'
+      const responseData = envelope.payload.data;     // Ex: { nome: 'João' }
 
-      console.log('Mensagem do MFE recebida. Status:', responseStatus);
-      console.log('Dados interceptados do MFE:', responseData);
-
-      // Aplica regras de negócio (Fechar Modal do MFE, Avançar Step, Processar Pagamento, etc.)
+      // 3. Atualizamos a interface instantaneamente sem congelar a dom
+      this.mfeOriginId.set(originId);
+      this.mfeResponseStatus.set(responseStatus || 'info');
+      this.mfeResponseData.set(responseData);
+      
+      // 4. (Opcional) Switches baseados na origem
+      switch(originId) {
+         case 'nfe-app':
+           // Fazer Lógica A
+           break;
+      }
 
     } catch (e) {
-      console.error('[Host MFE Wrapper] Falha ao validar ou abrir roteamento reverso!', e);
+      console.error('[Host MFE Wrapper] Falha ao decifrar o callback MFE!', e);
     }
   }
 }
 ```
+
+### Prevenção de Gargalos e Segurança
+O isolamento atualizado está garantido pois o Root Application, ao decifrar a mensagem, consegue saber EXATAMENTE qual MFE enviou a mensagem. Nenhuma informação de um MFE sobrescreverá acidentalmente o fluxo atrelado a outro MFE, permitindo a verdadeira orquestração assíncrona Enterprise na plataforma Angular.

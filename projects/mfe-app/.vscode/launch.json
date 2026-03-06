@@ -7,9 +7,32 @@
         {
             "type": "chrome",
             "request": "launch",
-            "name": "Launch Chrome against localhost",
+            "name": "Launch MFE Standalone (localhost:4201)",
             "url": "http://localhost:4201",
-            "webRoot": "${workspaceFolder}"
+            "webRoot": "${workspaceFolder}",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:/*": "${webRoot}/*",
+                "/./*": "${webRoot}/*",
+                "/*": "*",
+                "/src/*": "${webRoot}/src/*",
+                "http://localhost:4201/src/*": "${webRoot}/src/*"
+            }
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Host (localhost:4200) - Debug MFE",
+            "url": "http://localhost:4200",
+            "webRoot": "${workspaceFolder}",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:/*": "${webRoot}/*",
+                "/./*": "${webRoot}/*",
+                "/*": "*",
+                "http://localhost:4201/src/*": "${webRoot}/src/*",
+                "/src/*": "${webRoot}/src/*"
+            }
         }
     ]
 }
