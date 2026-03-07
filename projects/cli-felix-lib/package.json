@@ -1,0 +1,22 @@
+{
+  "name": "cli-felix-lib",
+  "version": "1.0.0",
+  "description": "CLI interativa para gerar scaffolding do Root e de Micro-Frontends",
+  "main": "bin/cli.js",
+  "bin": {
+    "cli-felix-lib": "./bin/cli.js"
+  },
+  "keywords": [
+    "cli",
+    "create",
+    "mfe",
+    "root",
+    "template"
+  ],
+  "author": "Equipe de Arquitetura",
+  "license": "MIT",
+  "dependencies": {
+    "fs-extra": "^11.2.1",
+    "inquirer": "^8.2.6"
+  }
+}

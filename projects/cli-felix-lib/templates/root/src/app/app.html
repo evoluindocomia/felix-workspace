@@ -1,0 +1,30 @@
+<main class="main">
+  <div class="content">
+    <h1>Host Application (Root App)</h1>
+    <p>Abaixo o MFE sendo renderizado via MfeOutletDirective:</p>
+
+    <div style="border: 2px dashed #007bff; padding: 20px; margin-top: 20px;">
+      <!-- Passando o greetingParam p/ dentro do contextData dinâmico para evitar erro de schematics de prop não mapeada -->
+      <ng-container
+        [mfeOutlet]="mfeConfig"
+        [contextData]="enterpriseData"
+        [securityConfig]="security"
+        (mfeReturn)="handleMfeReturn($any($event))">
+      </ng-container>
+    </div>
+
+    <div *ngIf="mfeResponseData" style="border: 2px solid #28a745; margin-top: 20px; padding: 20px; background-color: #f8fdf9;">
+      <h3>Retorno Interceptado do MFE: <strong>{{ mfeOriginId }}</strong></h3>
+      <p>
+        <span [style.color]="mfeResponseStatus === 'error' ? 'red' : 'green'" style="font-weight: bold; margin-bottom: 15px; display: block;">
+          STATUS: {{ mfeResponseStatus | uppercase }}
+        </span>
+      </p>
+      <pre style="background: #eef; padding: 10px; border-radius: 4px; overflow-x: auto;">
+{{ mfeResponseData | json }}
+      </pre>
+    </div>
+  </div>
+</main>
+
+<router-outlet />
